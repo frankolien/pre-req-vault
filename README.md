@@ -18,7 +18,7 @@ username on chain.
 
 ![architecture](docs/architecture.png)
 
-Source: [docs/architecture.svg](docs/architecture.svg).
+Source: [docs/architecture.excalidraw](docs/architecture.excalidraw) (open it at excalidraw.com to edit).
 
 ### Instructions
 
