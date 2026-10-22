@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1040" viewBox="0 0 1500 1040" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/>
+    </marker>
+    <marker id="arrow-cpi" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b4531a"/>
+    </marker>
+  </defs>
+  <style>
+    .title { font-size: 26px; font-weight: 700; fill: #111; }
+    .subtitle { font-size: 15px; fill: #555; }
+    .h { font-size: 17px; font-weight: 700; fill: #111; }
+    .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; fill: #222; }
+    .small { font-size: 13px; fill: #444; }
+    .label { font-size: 13px; fill: #333; }
+    .cpi { fill: #b4531a; font-weight: 600; }
+    .box { fill: #fff; stroke: #333; stroke-width: 1.5; rx: 10; }
+    .program { fill: #eef3fb; stroke: #2d5ba9; stroke-width: 2; rx: 12; }
+    .ext { fill: #fdf3ea; stroke: #b4531a; stroke-width: 2; rx: 12; }
+    .sys { fill: #f3f3f3; stroke: #777; stroke-width: 1.5; rx: 12; }
+    .pda { fill: #f7fbf4; stroke: #3b7d3b; stroke-width: 1.5; rx: 8; }
+    .ix { fill: #fff; stroke: #2d5ba9; stroke-width: 1.2; rx: 6; }
+    .step { fill: #2d5ba9; }
+    .stepText { fill: #fff; font-size: 13px; font-weight: 700; }
+    .flow { stroke: #333; stroke-width: 1.6; fill: none; marker-end: url(#arrow); }
+    .flowcpi { stroke: #b4531a; stroke-width: 1.8; fill: none; marker-end: url(#arrow-cpi); stroke-dasharray: 7 4; }
+  </style>
+
+  <rect width="1500" height="1040" fill="#fafafa"/>
+  <text x="40" y="46" class="title">pre-req-vault: a per-user SOL vault on Solana (Anchor)</text>
+  <text x="40" y="72" class="subtitle">Each wallet gets its own vault. State and funds live in PDAs owned by the vault program. The withdraw instruction also registers the user via a CPI into the Turbin3 registration program.</text>
+
+  <!-- ===================== CLIENT ===================== -->
+  <rect x="40" y="110" width="250" height="300" class="box"/>
+  <text x="60" y="140" class="h">User wallet (client)</text>
+  <text x="60" y="165" class="small">Signs every transaction and pays</text>
+  <text x="60" y="183" class="small">fees + rent. Driven by the test</text>
+  <text x="60" y="201" class="small">suite in tests/pre-req-vault.ts</text>
+  <text x="60" y="235" class="label">Calls, in order:</text>
+  <text x="60" y="260" class="mono">1  initialize()</text>
+  <text x="60" y="282" class="mono">2  deposit(amount)</text>
+  <text x="60" y="304" class="mono">3  withdraw(amount)</text>
+  <text x="60" y="326" class="mono">4  close()</text>
+  <text x="60" y="360" class="small">Client derives the PDA addresses</text>
+  <text x="60" y="378" class="small">with findProgramAddress and</text>
+  <text x="60" y="396" class="small">passes them in explicitly.</text>
+
+  <!-- ===================== VAULT PROGRAM ===================== -->
+  <rect x="350" y="110" width="620" height="560" class="program"/>
+  <text x="370" y="140" class="h">Vault program  (pre_req_vault)</text>
+  <text x="370" y="160" class="mono">6Vd3hBadEMojPBZHwgT3UnoVjB2qAwwrkkEbPCJ2nr89</text>
+
+  <!-- instructions column -->
+  <text x="370" y="195" class="label" font-weight="700">Instructions</text>
+
+  <rect x="370" y="205" width="280" height="90" class="ix"/>
+  <circle cx="390" cy="225" r="11" class="step"/><text x="386" y="230" class="stepText">1</text>
+  <text x="410" y="230" class="mono" font-weight="700">initialize</text>
+  <text x="380" y="252" class="small">Creates VaultState (rent paid by user).</text>
+  <text x="380" y="270" class="small">Stores both PDA bumps so later calls</text>
+  <text x="380" y="288" class="small">can re-derive the PDAs cheaply.</text>
+
+  <rect x="370" y="305" width="280" height="72" class="ix"/>
+  <circle cx="390" cy="325" r="11" class="step"/><text x="386" y="330" class="stepText">2</text>
+  <text x="410" y="330" class="mono" font-weight="700">deposit(amount)</text>
+  <text x="380" y="352" class="small">System transfer user → vault.</text>
+  <text x="380" y="370" class="small">User is the signer, so no PDA seeds needed.</text>
+
+  <rect x="370" y="387" width="280" height="150" class="ix"/>
+  <circle cx="390" cy="407" r="11" class="step"/><text x="386" y="412" class="stepText">3</text>
+  <text x="410" y="412" class="mono" font-weight="700">withdraw(amount)</text>
+  <text x="380" y="434" class="small">a) System transfer vault → user, signed</text>
+  <text x="380" y="452" class="small">    by the program with the vault PDA seeds</text>
+  <text x="380" y="470" class="small">    ["vault", vault_state, bump].</text>
+  <text x="380" y="492" class="small cpi">b) CPI → registration.initialize(github)</text>
+  <text x="380" y="510" class="small">    creates the ApplicationAccount PDA and</text>
+  <text x="380" y="528" class="small">    records the GitHub username.</text>
+
+  <rect x="370" y="547" width="280" height="105" class="ix"/>
+  <circle cx="390" cy="567" r="11" class="step"/><text x="386" y="572" class="stepText">4</text>
+  <text x="410" y="572" class="mono" font-weight="700">close</text>
+  <text x="380" y="594" class="small">Transfers every lamport in the vault back</text>
+  <text x="380" y="612" class="small">to the user (PDA-signed), then closes</text>
+  <text x="380" y="630" class="small">VaultState and refunds its rent (Anchor</text>
+  <text x="380" y="648" class="small">close = user).</text>
+
+  <!-- accounts column -->
+  <text x="680" y="195" class="label" font-weight="700">Accounts owned by this program (PDAs)</text>
+
+  <rect x="680" y="205" width="270" height="150" class="pda"/>
+  <text x="695" y="230" class="mono" font-weight="700">VaultState</text>
+  <text x="695" y="250" class="mono">seeds = ["state", user]</text>
+  <text x="695" y="275" class="small">Data account (10 bytes + 8-byte</text>
+  <text x="695" y="293" class="small">Anchor discriminator):</text>
+  <text x="695" y="316" class="mono">  vault_bump: u8</text>
+  <text x="695" y="336" class="mono">  state_bump: u8</text>
+
+  <rect x="680" y="370" width="270" height="150" class="pda"/>
+  <text x="695" y="395" class="mono" font-weight="700">Vault</text>
+  <text x="695" y="415" class="mono">seeds = ["vault", vault_state]</text>
+  <text x="695" y="440" class="small">Plain System account, no data.</text>
+  <text x="695" y="458" class="small">Its only job is to hold lamports.</text>
+  <text x="695" y="482" class="small">Nobody holds a private key for it:</text>
+  <text x="695" y="500" class="small">the program "signs" for it with seeds.</text>
+
+  <text x="680" y="555" class="small">One VaultState + one Vault per user wallet.</text>
+  <text x="680" y="573" class="small">Vault is chained off VaultState, so both</text>
+  <text x="680" y="591" class="small">derive deterministically from the user key.</text>
+  <text x="680" y="620" class="small">Every instruction re-checks the seeds and</text>
+  <text x="680" y="638" class="small">bumps, so a user can only touch their own.</text>
+
+  <!-- ===================== SYSTEM PROGRAM ===================== -->
+  <rect x="1030" y="110" width="430" height="150" class="sys"/>
+  <text x="1050" y="140" class="h">System program</text>
+  <text x="1050" y="160" class="mono">11111111111111111111111111111111</text>
+  <text x="1050" y="188" class="small">Native program that creates accounts and moves</text>
+  <text x="1050" y="206" class="small">lamports. The vault program invokes it (CPI) in</text>
+  <text x="1050" y="224" class="small">deposit, withdraw and close. Anchor's `init`</text>
+  <text x="1050" y="242" class="small">also uses it under the hood in initialize.</text>
+
+  <!-- ===================== REGISTRATION PROGRAM ===================== -->
+  <rect x="1030" y="290" width="430" height="395" class="ext"/>
+  <text x="1050" y="320" class="h">Registration program  (q3_pre_reqs_rs)</text>
+  <text x="1050" y="340" class="mono">TRBZyQHB3m68FGeVsqTK39Wm4xejadjVhP5MAZaKWDM</text>
+  <text x="1050" y="365" class="small">Deployed by Turbin3 on devnet. Our program only</text>
+  <text x="1050" y="383" class="small">knows its interface (idls/registration.json), pulled</text>
+  <text x="1050" y="401" class="small">in with Anchor's declare_program! macro.</text>
+
+  <rect x="1050" y="420" width="390" height="248" class="pda"/>
+  <text x="1065" y="445" class="mono" font-weight="700">ApplicationAccount</text>
+  <text x="1065" y="465" class="mono">seeds = ["prereqs", user]  (owner: registration)</text>
+  <text x="1065" y="490" class="mono">  user:        Pubkey</text>
+  <text x="1065" y="510" class="mono">  bump:        u8</text>
+  <text x="1065" y="530" class="mono">  pre_req_ts:  bool</text>
+  <text x="1065" y="550" class="mono">  pre_req_rs:  bool</text>
+  <text x="1065" y="570" class="mono">  github:      String  = "frankolien"</text>
+  <text x="1065" y="600" class="small">Created once per wallet by `initialize(github)`.</text>
+  <text x="1065" y="618" class="small">The user signs the outer tx; that signature is</text>
+  <text x="1065" y="636" class="small">forwarded through the CPI, so the callee sees</text>
+  <text x="1065" y="654" class="small">`user` as a signer and payer.</text>
+
+  <!-- ===================== ARROWS ===================== -->
+  <!-- client -> vault program -->
+  <path d="M 290 270 L 350 270" class="flow"/>
+  <text x="296" y="262" class="label">tx</text>
+
+  <!-- vault program -> system program (deposit / withdraw / close) -->
+  <path d="M 970 190 L 1030 190" class="flow"/>
+  <text x="975" y="182" class="label">CPI</text>
+
+  <!-- withdraw -> registration (CPI) -->
+  <path d="M 970 490 L 1030 490" class="flowcpi"/>
+  <text x="975" y="482" class="label cpi">CPI</text>
+
+  <!-- ===================== LIFECYCLE STRIP ===================== -->
+  <text x="40" y="720" class="h">How state changes over time (one user)</text>
+
+  <g transform="translate(40,740)">
+    <rect x="0" y="0" width="330" height="240" class="box"/>
+    <circle cx="22" cy="24" r="11" class="step"/><text x="18" y="29" class="stepText">1</text>
+    <text x="42" y="29" class="label" font-weight="700">after initialize</text>
+    <text x="16" y="60" class="mono">VaultState   created, bumps stored</text>
+    <text x="16" y="82" class="mono">Vault        0 SOL (address only)</text>
+    <text x="16" y="104" class="mono">AppAccount   does not exist</text>
+    <text x="16" y="140" class="small">User paid rent for VaultState + fee.</text>
+  </g>
+
+  <g transform="translate(400,740)">
+    <rect x="0" y="0" width="330" height="240" class="box"/>
+    <circle cx="22" cy="24" r="11" class="step"/><text x="18" y="29" class="stepText">2</text>
+    <text x="42" y="29" class="label" font-weight="700">after deposit(1 SOL)</text>
+    <text x="16" y="60" class="mono">VaultState   unchanged</text>
+    <text x="16" y="82" class="mono">Vault        1 SOL</text>
+    <text x="16" y="104" class="mono">AppAccount   does not exist</text>
+    <text x="16" y="140" class="small">Lamports moved user → vault via the</text>
+    <text x="16" y="158" class="small">System program; user signed.</text>
+  </g>
+
+  <g transform="translate(760,740)">
+    <rect x="0" y="0" width="330" height="240" class="ext"/>
+    <circle cx="22" cy="24" r="11" class="step"/><text x="18" y="29" class="stepText">3</text>
+    <text x="42" y="29" class="label" font-weight="700">after withdraw(0.5 SOL)</text>
+    <text x="16" y="60" class="mono">VaultState   unchanged</text>
+    <text x="16" y="82" class="mono">Vault        0.5 SOL</text>
+    <text x="16" y="104" class="mono cpi">AppAccount   created, github set</text>
+    <text x="16" y="140" class="small">Vault → user transfer signed by the</text>
+    <text x="16" y="158" class="small">program with PDA seeds, then the</text>
+    <text x="16" y="176" class="small">registration CPI runs in the same tx.</text>
+    <text x="16" y="194" class="small">If either step fails, the whole tx</text>
+    <text x="16" y="212" class="small">is rolled back (atomic).</text>
+  </g>
+
+  <g transform="translate(1120,740)">
+    <rect x="0" y="0" width="340" height="240" class="box"/>
+    <circle cx="22" cy="24" r="11" class="step"/><text x="18" y="29" class="stepText">4</text>
+    <text x="42" y="29" class="label" font-weight="700">after close</text>
+    <text x="16" y="60" class="mono">VaultState   closed, rent refunded</text>
+    <text x="16" y="82" class="mono">Vault        0 SOL</text>
+    <text x="16" y="104" class="mono">AppAccount   still exists (not ours)</text>
+    <text x="16" y="140" class="small">All lamports back to the user. The</text>
+    <text x="16" y="158" class="small">registration record is owned by the</text>
+    <text x="16" y="176" class="small">other program and is untouched.</text>
+  </g>
+
+  <text x="40" y="1012" class="small">Legend:  blue = our program and its instructions   green = PDAs (program-derived accounts, no private key)   orange / dashed = cross-program invocation into the registration program   grey = native System program</text>
+</svg>
